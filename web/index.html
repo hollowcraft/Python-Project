@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Startup</title>
+<style>
+    body { font-family: sans-serif; padding: 2rem; background: #f5f5f5; }
+    h1 { text-align: center; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 0.5rem 0; }
+    a { text-decoration: none; color: #007bff; }
+    a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+    <div>
+        <h1>list</h1>
+        <ul id="tab">
+            <li>
+                <input type="checkbox" id="PKserver"> PKserver <br>
+                <input type="checkbox" id="test"> test <br>
+            </li>
+        </ul>
+    </div>
+<script>
+async function fetchSites() {
+    try {
+        const res = await fetch('list.txt'); // On lit le .txt
+        const text = await res.text();
+        const folders = text.split('\n').map(f => f.trim()).filter(f => f.length > 0);
+        const ul = document.getElementById('site-list');
+        folders.forEach(folder => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `http://localhost:8000/${folder}/index.html`;
+            a.target = "_blank";
+            a.textContent = folder;
+            li.appendChild(a);
+            ul.appendChild(li);
+        });
+    } catch(e) {
+        console.error(e);
+        document.getElementById('site-list').textContent = "Impossible de récupérer les sites.";
+    }
+}
+fetchSites();
+</script>
+</body>
+</html>

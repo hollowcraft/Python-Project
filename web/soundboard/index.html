@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Play Sounds</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0}
+    body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#e6eef8}
+    .card{padding:28px 32px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.08));box-shadow:0 8px 30px rgba(2,6,23,0.6);text-align:center;max-width:400px}
+    button{appearance:none;border:0;padding:12px 20px;margin:8px 0;border-radius:10px;font-size:16px;cursor:pointer;background:#3b82f6;color:white;box-shadow:0 6px 18px rgba(59,130,246,0.25);width:100%}
+    button:hover{background:#2563eb}
+    .hint{margin-top:10px;opacity:0.85;font-size:13px}
+    .error{color:#ffb4b4;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Jouer un son</h1>
+    <p>Clique sur un bouton pour jouer le son correspondant.</p>
+    <div id="buttons"></div>
+    <div class="hint">Les fichiers audio (.mp3 et .ogg) doivent être dans le même dossier que ce fichier HTML.</div>
+    <div id="status" class="error" role="status" aria-live="polite"></div>
+  </div>
+
+  <audio id="audioPlayer" preload="auto"></audio>
+
+  <script>
+    (async function(){
+      const status = document.getElementById('status');
+      const buttonsContainer = document.getElementById('buttons');
+      const audio = document.getElementById('audioPlayer');
+
+      try {
+        // Essaie de récupérer la liste des fichiers via fetch du dossier courant
+        const response = await fetch('./');
+        if(!response.ok) throw new Error('Impossible de lister les fichiers (serveur requis).');
+        const text = await response.text();
+
+        // Parser les noms de fichiers depuis l'index HTML du dossier
+        const regex = /href="([^"]+\.(?:mp3|ogg))"/gi;
+        let match;
+        let files = [];
+        while((match = regex.exec(text)) !== null){
+          files.push(match[1]);
+        }
+
+        if(files.length === 0){
+          status.textContent = 'Aucun fichier audio trouvé dans ce dossier.';
+          return;
+        }
+
+        files.forEach(file => {
+          const btn = document.createElement('button');
+          btn.textContent = '▶ ' + file;
+          btn.addEventListener('click', async ()=>{
+            status.textContent = '';
+            try{
+              audio.src = file;
+              audio.currentTime = 0;
+              await audio.play();
+            }catch(err){
+              status.textContent = 'Impossible de lire ' + file + ': ' + err.message;
+            }
+          });
+          buttonsContainer.appendChild(btn);
+        });
+      } catch(err) {
+        console.error(err);
+        status.textContent = 'Erreur: ' + err.message;
+      }
+
+      audio.addEventListener('error', ()=>{
+        status.textContent = 'Erreur de chargement du fichier audio.';
+      });
+    })();
+  </script>
+</body>
+</html>

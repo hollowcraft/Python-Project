@@ -1,0 +1,3 @@
+User: salut ça va ?
+Assistant: Salut ! Ça va bien, merci ! Et toi, comment vas-tu ?
+

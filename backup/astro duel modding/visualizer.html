@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éditeur de Niveaux XML</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .properties {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .matrix {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .tile {
+            width: 20px;
+            height: 20px;
+            margin: 0; /* Suppression de la marge pour enlever les bordures */
+            background-color: transparent; /* Transparent par défaut */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Éditeur de Niveaux XML</h1>
+        <button id="loadButton">Charger Niveau XML</button>
+        <div id="properties" class="properties"></div>
+        <div id="matrix" class="matrix"></div>
+    </div>
+
+    <script>
+        document.getElementById("loadButton").addEventListener("click", loadLevel);
+
+        function loadLevel() {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = ".xml, .tmx";
+            fileInput.onchange = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const xmlContent = e.target.result;
+                        parseXML(xmlContent);
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            fileInput.click();
+        }
+
+        function parseXML(xmlContent) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+
+            displayProperties(xmlDoc);
+            displayLayers(xmlDoc);
+        }
+
+        function displayProperties(xmlDoc) {
+            const propertiesDiv = document.getElementById("properties");
+            propertiesDiv.innerHTML = ""; // Clear previous properties
+
+            const properties = xmlDoc.getElementsByTagName("properties")[0];
+            if (properties) {
+                for (const prop of properties.children) {
+                    const name = prop.getAttribute("name");
+                    const value = prop.getAttribute("value");
+                    propertiesDiv.innerHTML += `<p>${name}: ${value}</p>`;
+                }
+            } else {
+                propertiesDiv.innerHTML = "<p>Aucune propriété trouvée.</p>";
+            }
+        }
+
+        function displayLayers(xmlDoc) {
+            const matrixDiv = document.getElementById("matrix");
+            matrixDiv.innerHTML = ""; // Clear previous layers
+
+            const layers = xmlDoc.getElementsByTagName("layer");
+            Array.from(layers).forEach((layer) => {
+                const layerName = layer.getAttribute("name") || "Layer";
+                const width = parseInt(layer.getAttribute("width"), 10);
+                const height = parseInt(layer.getAttribute("height"), 10);
+                const dataElem = layer.getElementsByTagName("data")[0];
+
+                if (dataElem && dataElem.textContent) {
+                    const tileData = dataElem.textContent.trim().split(",").map(Number);
+                    const matrix = Array.from({ length: height }, (_, i) =>
+                        tileData.slice(i * width, (i + 1) * width)
+                    );
+
+                    // Titre de la couche
+                    matrixDiv.innerHTML += `<h3>--- ${layerName} ---</h3>`;
+                    
+                    // Afficher la matrice
+                    matrix.forEach((row) => {
+                        const rowDiv = document.createElement("div");
+                        rowDiv.className = "row";
+                        row.forEach((tile) => {
+                            const tileDiv = document.createElement("div");
+                            tileDiv.className = "tile";
+                            tileDiv.style.backgroundColor = getTileColor(layerName, tile);
+                            rowDiv.appendChild(tileDiv);
+                        });
+                        matrixDiv.appendChild(rowDiv);
+                    });
+                }
+            });
+        }
+
+        function getTileColor(layerName, tileValue) {
+            // Couleurs personnalisées par type de couche
+            if (layerName.toLowerCase().includes("fg")) {
+                if (tileValue === 0) return "#ffffff"; // Blanc pour 0
+                else if (tileValue === 84) return "#000000"; // Noir pour 84
+                else if (tileValue === 74) return "#808080"; // Gris pour 74
+                else return "#cccccc"; // Gris clair par défaut pour les autres valeurs
+            } else if (layerName.toLowerCase().includes("bg")) {
+                return tileValue === 0 ? "#888888" : "#444444";
+            } else if (layerName.toLowerCase().includes("detail")) {
+                return "#ffa500"; // Orange pour les détails
+            } else if (layerName.toLowerCase().includes("spawn")) {
+                return tileValue === 0 ? "#00ff00" : "#ff00ff"; // Vert pour 0, Magenta pour les autres
+            } else {
+                // Couleurs par défaut pour les autres valeurs
+                return tileValue === 0 ? "#ff0000" : "#0000ff"; // Rouge pour 0, Bleu pour les autres
+            }
+        }
+    </script>
+</body>
+</html>

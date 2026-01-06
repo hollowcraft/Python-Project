@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Task</title>
+</head>
+<body>
+    <div id="task-container">
+        CheckDiscord <input type="checkbox" id="CheckDiscord"><br>
+        Dent <input type="checkbox" id="Dent"><br>
+        Envoyé un message <input type="checkbox" id="Envoyé_un_message"><br>
+        Médoc <input type="checkbox" id="Médoc"><br>
+        Raconte <br><textarea style="resize: both; overflow: auto;" id="raconte"></textarea>
+    </div>
+    <button onclick="send()">send</button>
+
+<script>
+    function send() {
+        const container = document.getElementById('task-container');
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        const textInputs = container.querySelectorAll('input[type="text"]');
+        const textareas  = container.querySelectorAll('textarea');
+        
+        const data = {};
+        
+        checkboxes.forEach(checkbox => {
+            data[checkbox.id] = checkbox.checked;
+        });
+        
+        textInputs.forEach(input => {
+            data[input.id] = input.value;
+        });
+
+        textareas.forEach(area => {
+            data[area.id] = area.value;
+        });
+
+        fetch('/Task/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+</body>
+</html>

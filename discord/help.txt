@@ -1,0 +1,13 @@
+╔═Commands═╗
+╬Funny:
+   tts <message> : read the text out loud
+   steam <game name> : start the game on my pc
+   play <url of a mp3> : play a sound
+╬Ror2:
+   remove curse : removes curse for player 2
+   save nuke :D
+╬Other:
+   Server <name> : to start server
+   request <your request> : to send request to add to the bot
+   ping : to check if the bot is online
+╚══════════╝

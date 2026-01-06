@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Éditeur Save ROR2</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #162936; color: #eee; padding: 20px; }
+    h1 { color: #27e9b5; }
+    select, input, button.toggle { margin: 5px; padding: 5px; }
+    .player, .item { border: 1px solid #3b5265; padding: 10px; margin: 10px 0; background: #333; border-radius: 5px; }
+    .player h2 { color: #27e9b5; display: inline; margin-right: 10px; }
+    .item h3 { color: #e92764; }
+    button { margin-top: 15px; padding: 10px 20px; background: #27e9b5; border: none; color: #051824; font-weight: bold; cursor: pointer; border-radius: 5px; }
+    button:hover { background: #27e9b5; }
+    .toggle { background: #3b5265; color: #fff; font-weight: bold; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>Éditeur Save ROR2</h1>
+
+  <div>
+    <label>Difficulté :</label>
+    <select id="difficulty">
+      <option value="0">1 - Facile</option>
+      <option value="1">2 - Normal</option>
+      <option value="2">3 - Difficile</option>
+      <option value="3">4 - Impossible</option>
+    </select>
+    <label>Map :</label>
+    <select id="map">
+      <option value="blackbeach2">blackbeach2</option>
+      <option value="goolake">goolake</option>
+      <option value="frozenwall">frozenwall</option>
+      <option value="skymeadow">skymeadow</option>
+      <option value="moon2">moon2</option>
+      <option value="bazaar">bazaar</option>
+      <option value="goldshores">goldshores</option>
+      <option value="-">-</option>
+      <option value="wispgraveyard">wispgraveyard</option>
+      <option value="dampcavesimple">dampcavesimple</option>
+    </select>
+  </div>
+
+  <div id="players"></div>
+
+  <button onclick="saveJson()">💾 Sauvegarder</button>
+  <p id="status"></p>
+
+  <script>
+    let currentData = {};
+    const persoChoices = ["CommandoBody","HuntressBody","Bandit2Body","ToolBotBody","EngiBody","MageBody","MercBody","TreebotBody","CrocoBody","LoaderBody","CaptainBody"];
+
+    async function loadJson() {
+      let response = await fetch("/ror2save/load");
+      currentData = await response.json();
+
+      document.getElementById("difficulty").value = currentData.difficulty;
+      document.getElementById("map").value = currentData.map;
+
+      let playersDiv = document.getElementById("players");
+      playersDiv.innerHTML = "";
+
+      for (let key in currentData) {
+        if (key.startsWith("player")) {
+          let player = currentData[key];
+
+          let playerDiv = document.createElement("div");
+          playerDiv.className = "player";
+
+          // Toggle button
+          let toggleBtn = document.createElement("button");
+          toggleBtn.className = "toggle";
+          toggleBtn.textContent = "Item  >";
+          toggleBtn.onclick = () => {
+            if (itemsDiv.style.display === "none") {
+              itemsDiv.style.display = "block";
+              toggleBtn.textContent = "Item V";
+            } else {
+              itemsDiv.style.display = "none";
+              toggleBtn.textContent = "Item >";
+            }
+          };
+
+          // Player header
+          let header = document.createElement("h2");
+          header.textContent = key;
+
+          playerDiv.appendChild(header);
+          playerDiv.appendChild(toggleBtn);
+
+          // Perso select
+          let persoLabel = document.createElement("label");
+          persoLabel.textContent = " Perso : ";
+          let persoSelect = document.createElement("select");
+          persoSelect.id = key + "_perso";
+          for (let p of persoChoices) {
+            let opt = document.createElement("option");
+            opt.value = p;
+            opt.textContent = p;
+            if (p === player.perso) opt.selected = true;
+            persoSelect.appendChild(opt);
+          }
+          playerDiv.appendChild(persoLabel);
+          playerDiv.appendChild(persoSelect);
+
+          // Items
+          let itemsDiv = document.createElement("div");
+          itemsDiv.innerHTML = "<h3>Items :</h3>";
+          itemsDiv.style.marginLeft = "20px";
+          player.items.forEach((item, i) => {
+            let itemDiv = document.createElement("div");
+            itemDiv.className = "item";
+            itemDiv.innerHTML = `
+              <label>Item ID: <input type="number" id="${key}_item_${i}_id" value="${item[0]}"></label>
+              <label>Quantité: <input type="number" id="${key}_item_${i}_count" value="${item[1]}"></label>
+            `;
+            itemsDiv.appendChild(itemDiv);
+          });
+
+          // Items cachés par défaut
+          itemsDiv.style.display = "none";
+
+          playerDiv.appendChild(itemsDiv);
+          playersDiv.appendChild(playerDiv);
+        }
+      }
+    }
+
+    async function saveJson() {
+      let status = document.getElementById("status");
+      try {
+        let newData = {};
+        newData.difficulty = parseInt(document.getElementById("difficulty").value);
+        newData.map = parseInt(document.getElementById("map").value);
+
+        for (let key in currentData) {
+          if (key.startsWith("player")) {
+            let perso = document.getElementById(key + "_perso").value;
+            let items = [];
+            currentData[key].items.forEach((_, i) => {
+              let id = parseInt(document.getElementById(`${key}_item_${i}_id`).value);
+              let count = parseInt(document.getElementById(`${key}_item_${i}_count`).value);
+              items.push([id, count]);
+            });
+            newData[key] = { perso: perso, items: items };
+          }
+        }
+
+        let response = await fetch("/ror2save/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newData)
+        });
+
+        let result = await response.json();
+        status.innerText = "✅ Sauvegardé avec succès : " + result.file;
+        status.style.color = "lightgreen";
+      } catch (err) {
+        status.innerText = "❌ Erreur : " + err;
+        status.style.color = "red";
+      }
+    }
+
+    loadJson();
+  </script>
+</body>
+</html>

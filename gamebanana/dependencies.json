@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "CommunalHelper",
+        "Version": "1.21.1"
+    },
+    {
+        "Name": "DJMapHelper",
+        "Version": "1.13.4"
+    },
+    {
+        "Name": "Everest",
+        "Version": "1.5421.0"
+    },
+    {
+        "Name": "ExtendedVariantMode",
+        "Version": "0.40.1"
+    },
+    {
+        "Name": "FancyTileEntities",
+        "Version": "1.6.2"
+    },
+    {
+        "Name": "FrostHelper",
+        "Version": "1.67.2"
+    },
+    {
+        "Name": "LunaticHelper",
+        "Version": "1.1.1"
+    },
+    {
+        "Name": "MaxHelpingHand",
+        "Version": "1.34.0"
+    },
+    {
+        "Name": "XaphanHelper",
+        "Version": "1.0.75"
+    }
+]
