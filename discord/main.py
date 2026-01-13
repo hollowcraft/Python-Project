@@ -9,7 +9,7 @@ import pygame
 import time
 
 # --- Lecture du token depuis token.txt ---
-with open(r"C:\Users\Adam\Desktop\Shortcut\token.txt", "r", encoding="utf-8") as f:
+with open(r"C:\Users\Adam\Desktop\Shortcut\Tools\autre\token.txt", "r", encoding="utf-8") as f:
     BOT_TOKEN = f.read().strip()
 
 # --- Intents ---
